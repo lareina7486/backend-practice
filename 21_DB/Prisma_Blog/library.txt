@@ -39,3 +39,23 @@ npm install -D eslint prettier @eslint/js
 }
 
 // Prisma 확장 프로그램(VSCode) 설치
+
+
+---
+
+// 스키마 DB에 적용
+
+// 스키마를 기반으로 Prisma Client 코드 생성(generated/prisma)
+npm run prisma:generate
+
+// 마이그레이션 생성 및 적용(prisma/migrations): DB 스키마 변경을 실제 데이터베이스에 반영
+// 데이터베이스에 테이블 생성, 자동으로 prisma generate도 실행됨
+npm run prisma:migrate
+> init
+
+---
+
+// 시딩(Seeding): 테스트용 초기 데이터 자동 생성
+// -D 또는 -save-dev: 개발 환경에서만 사용하는 패키지
+npm install -D @faker-js/faker
+
