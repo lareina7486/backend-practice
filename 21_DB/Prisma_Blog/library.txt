@@ -1,0 +1,41 @@
+# 설치 라이브러리
+
+npm init -y
+
+npm install express @prisma/client @prisma/adapter-pg pg dotenv dotenv-cli zod
+- `express`: 웹 서버를 만드는 프레임워크
+- `@prisma/client`: 데이터베이스와 통신하는 Prisma 클라이언트
+- `@prisma/adapter-pg`: PostgreSQL 연결을 위한 Prisma 어댑터 (Prisma 7 필수)
+- `pg`: PostgreSQL 드라이버 (내부적으로 adapter가 사용)
+- `dotenv`: 환경 변수 관리 (실무 표준)
+- `dotenv-cli`: Prisma CLI에 환경 변수 전달 (프로덕션 migration 포함)
+- `zod`: 환경 변수 타입 검증 라이브러리
+
+npm install -D nodemon prisma
+- `nodemon`: 코드 변경 시 서버 자동 재시작
+- `prisma`: Prisma CLI 도구 (마이그레이션, 스키마 관리)
+
+⚠️ 환경 변수는 어떻게 로드?
+1. Node.js 서버용: `-env-file` 플래그 사용 (네이티브 지원)
+2. Prisma CLI용: `dotenv-cli` 로 환경 변수 주입
+   - prisma migrate는 Node 서버가 아니기 때문
+
+⚠️ 중요: dotenv-cli는 프로덕션 배포 시 CI/CD에서 migration을 실행하기 때문에
+        dependencies에 포함되어야 함.
+    - CI/CD?: 테스트, 빌드, 배포를 자동으로 수행하는 시스템. 배포 과정에서 CLI 도구들이 실행됨.
+
+---
+
+npm install -D eslint prettier @eslint/js
+
+// 설정 JSON 파일에 아래 코드 추가 (~/Applications Support/Code/User/setting.json)
+// 공유는 안됨 -> 공유 필요할시 .vscode/settings.json에 추가
+{
+	// 기존 설정들 ...
+  "[prisma]": {
+    "editor.defaultFormatter": "Prisma.prisma",   // Prisma 공식 포매터로 파일 저장
+    "editor.formatOnSave": true                   // 저장시 자동 포매팅 (전역 설정과 분리)
+  }
+}
+
+// Prisma 확장 프로그램(VSCode) 설치

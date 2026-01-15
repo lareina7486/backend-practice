@@ -1,0 +1,28 @@
+# Prisma
+
+백엔드 개발의 핵심은 **데이터베이스**를 다루는 것입니다.
+Prisma는 데이터베이스를 쉽고 안전하게 다룰 수 있게 해주는 최신 도구입니다.
+이 강의에서는 Prisma와 Express.js를 사용한 백엔드 프로젝트의 기본 뼈대를 구성하는 방법을 배웁니다.
+
+---
+
+### Prisma란?
+
+**Prisma**는 Node.js와 TypeScript를 위한 차세대 ORM(Object-Relational Mapping)입니다.
+* ORM: JavaScript 코드를 SQL로 자동 변환해주는 번역기 역할
+
+**Prisma의 장점:**
+- **타입 안전성**: 오타나 잘못된 데이터 타입 실수를 방지
+- **직관적인 코드**: SQL 대신 JavaScript로 데이터베이스 조작
+- **자동 완성**: 에디터에서 자동으로 사용 가능한 메서드 제안
+- **마이그레이션**: 데이터베이스 구조 변경을 코드로 관리
+
+
+// Prisma 사용 (JavaScript)
+const user = await prisma.user.findUnique({
+  where: { id: 1 },
+});
+
+// 실제 실행되는 SQL
+// SELECT * FROM user WHERE id = 1;
+
