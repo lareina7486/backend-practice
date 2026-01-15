@@ -1,0 +1,14 @@
+// PostreSQL에 prisma_blog DB 생성 완료
+
+// Prisma Client 생성 설정 (DB에 요청 보냄 === DB 클라이언트)
+generator client {
+    provider = "prisma-client"
+    output = "../generated/prisma"  // output 지정 필수, 상대경로
+}
+
+// 데이터베이스 연결 설정
+// Prisma ORM 7에서는 환경 변수를 자동 로드 X -> dotenv-cli 사용 또는 Prisma Config에 명시
+datasource db {
+    provider = "postgresql"
+    // url = env("DATABASE_URL")
+}
