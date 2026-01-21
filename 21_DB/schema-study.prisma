@@ -1,0 +1,51 @@
+generator client {
+    provider = "prisma-client"
+    output   = "../generated/prisma"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+model Study {
+    id           String   @id @default(ulid())
+    nickname     String
+    title        String
+    introduction String
+    background   String // 이미지 URL 주소 저장
+    password     String
+    totalPoint   Int      @default(0)
+    createdAt    DateTime @default(now())
+
+    habits Habit[]
+    emojis Emoji[]
+}
+
+model Habit {
+    id        String    @id @default(ulid())
+    name      String
+    createdAt DateTime  @default(now())
+    deletedAt DateTime?
+
+    studyId String
+    study   Study  @relation(fields: [studyId], references: [id], onDelete: Cascade)
+
+    records HabitRecord[]
+}
+
+model HabitRecord {
+    id        String   @id @default(ulid())
+    createdAt DateTime @default(now())
+
+    habitId String
+    habit   Habit  @relation(fields: [habitId], references: [id], onDelete: Cascade)
+}
+
+model Emoji {
+    id   String @id @default(ulid())
+    type String
+
+    // Study와 1:N 관계
+    studyId String
+    study   Study  @relation(fields: [studyId], references: [id], onDelete: Cascade)
+}
