@@ -26,8 +26,8 @@ model Study {
     introduction String
     background   BackgroundType // 이미지 URL 주소 저장
 
-    /// @writeOnly
-    /// 해시된 비밀번호이며, 응답 시 보안을 위해 제외
+    // @writeOnly
+    // 해시된 비밀번호이며, 응답 시 보안을 위해 제외
     password String
 
     totalPoint Int      @default(0)

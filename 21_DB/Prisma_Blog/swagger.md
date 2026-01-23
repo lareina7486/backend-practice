@@ -15,6 +15,8 @@ tags:
     description: 집중 및 포인트 관련 API
   - name: Auth
     description: 인증 관련 API
+  - name: Health
+    description: 헬스 체크 API
 
 servers:
   - url: http://localhost:3000
@@ -311,14 +313,43 @@ paths:
               properties:
                 duration:
                   type: integer
-                  description: 집중 시간 (분 단위)
+                  description: 추가할 포인트
       responses:
         '200':
           description: 포인트 업데이트 완료
+          
+  # ------------------------------
+  # Health Check
+  # ------------------------------
+  /health:
+    get:
+      tags:
+        - Health
+      summary: 서버 상태 확인
+      description: API 서버가 정상적으로 실행 중인지 확인
+      responses:
+        '200':
+          description: 서버 정상 동작
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                  env:
+                    type: string
+                    example: development
+                  timestamp:
+                    type: string
+                    format: date-time
 
-# ------------------------------------------------------------------------------
-# Components (Schema definitions)
-# ------------------------------------------------------------------------------
+  # ------------------------------
+  # ------------------------------
+  # Components (Schema definitions)
+  # ------------------------------
+  # ------------------------------
 components:
   schemas:
     BackgroundType:
