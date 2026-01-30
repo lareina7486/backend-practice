@@ -1,128 +1,120 @@
+// .env 파일 DATABASE_URL 설정 필요
+// 테이블 동기화: npm run prisma:migrate
+// 시드 데이터 생성: npm run seed (기존 데이터는 삭제됩니다.)
+
+import { PrismaClient } from '#generated/prisma/client.ts';
+import { PrismaPg } from '@prisma/adapter-pg';
 import { fakerKO as faker } from '@faker-js/faker';
+import {
+  makeStudy,
+  makeHabitsForStudy,
+  makeEmojisForStudy,
+  resetDb,
+} from './seed.factory.js';
 
-const NUM_STUDIES_TO_CREATE = 35;
+const NUM_STUDIES_TO_CREATE = 34;
 
-// const ALLOWED_BACKGROUND_PATHS = [
-//   '/images/backgrounds/green.png',
-//   '/images/backgrounds/yellow.png',
-//   '/images/backgrounds/blue.png',
-//   '/images/backgrounds/pink.png',
-//   '/images/backgrounds/alvaro.png',
-//   '/images/backgrounds/mikey.png',
-//   '/images/backgrounds/andrew.png',
-//   '/images/backgrounds/chris.png',
-// ];
+async function main(prisma) {
+  if (process.env.NODE_ENV !== 'development') {
+    throw new Error('⚠️  프로덕션 환경에서는 시딩을 실행하지 않습니다');
+  }
 
-// 1부터 n까지 배열 생성
-const xs = (n) => Array.from({ length: n }, (_, i) => i + 1);
+  faker.seed(1);
 
-// 허용 이모지 타입
-const EMOJI_TYPES = ['🔥', '💪', '📚', '✅', '🌱'];
+  console.log('🌱 시딩 시작...');
+  await resetDb(prisma);
+  console.log('✅ 기존 데이터 삭제 완료');
 
-// 문자열 자르기
-const slice = (str, max) => str.slice(0, max);
+  const studies = [];
 
-// 랜덤 날짜 문자열
-const randomDateString = () =>
-  faker.date
-    .between({
-      from: new Date(2026, 0, 1), // 2026-01-01
-      to: new Date(2026, 1, 6), // 2026-02-06
-    })
-    .toISOString()
-    .split('T')[0];
-
-// --------------------
-// Study 생성
-// --------------------
-const makeStudy = () => {
-  const studyId = faker.string.ulid();
-
-  const study = {
-    id: studyId,
-    nickname: slice(faker.person.firstName(), 4),
-    title: slice(faker.word.words({ count: 1 }), 6),
-    introduction: slice(faker.lorem.sentence(), 100),
-    // background: faker.helpers.arrayElement(ALLOWED_BACKGROUND_PATHS),
-    password: faker.internet.password({
-      length: faker.number.int({ min: 4, max: 10 }),
-      memorable: false,
-      pattern: /[a-zA-Z0-9]/,
-    }),
-    totalPoint: faker.number.int({ min: 0, max: 500 }),
-    habits: [],
-    emojis: [],
-  };
-
-  return study;
-};
-
-// --------------------
-// Habit 생성
-// --------------------
-const makeHabitsForStudy = (studyId) => {
-  const habitCount = faker.number.int({ min: 1, max: 10 });
-
-  return xs(habitCount).map(() => {
-    const habitId = faker.string.ulid();
-
-    return {
-      id: habitId,
-      name: slice(faker.lorem.words({ count: 1 }), 15),
-      studyId,
-      records: makeHabitRecordsForHabit(habitId),
-    };
-  });
-};
-
-// --------------------
-// HabitRecord 생성
-// --------------------
-const makeHabitRecordsForHabit = (habitId) => {
-  const recordCount = faker.number.int({ min: 3, max: 20 });
-
-  return xs(recordCount).map(() => ({
-    id: faker.string.ulid(),
-    habitId,
-    date: randomDateString(),
-    isCompleted: faker.datatype.boolean(),
-  }));
-};
-
-// --------------------
-// Emoji 생성
-// --------------------
-const makeEmojisForStudy = (studyId) => {
-  const emojiCount = faker.number.int({ min: 1, max: 5 });
-
-  return xs(emojiCount).map(() => ({
-    id: faker.string.ulid(),
-    type: faker.helpers.arrayElement(EMOJI_TYPES),
-    studyId,
-  }));
-};
-
-// --------------------
-// 메인 실행
-// --------------------
-function main() {
-  console.log('🌱 로컬 시딩 데이터 생성 시작...\n');
-
-  const studies = xs(NUM_STUDIES_TO_CREATE).map(() => {
-    const study = makeStudy();
+  for (let i = 0; i < NUM_STUDIES_TO_CREATE; i++) {
+    // for문 수정
+    const study = await makeStudy();
     study.habits = makeHabitsForStudy(study.id);
     study.emojis = makeEmojisForStudy(study.id);
-    return study;
-  });
+    studies.push(study);
+  }
 
-  // 전체 출력 (너무 길면 일부만 보고 싶을 수도 있음)
-  //   console.dir(studies, { depth: null });
+  for (const study of studies) {
+    await prisma.study.create({
+      data: {
+        id: study.id,
+        nickname: study.nickname,
+        title: study.title,
+        introduction: study.introduction,
+        background: study.background,
+        password: study.password,
+        totalPoint: study.totalPoint,
+        habits: {
+          create: study.habits.map((h) => ({
+            id: h.id,
+            name: h.name,
+            records: {
+              create: h.records.map((r) => ({
+                id: r.id,
+                date: r.date,
+                isCompleted: r.isCompleted,
+              })),
+            },
+          })),
+        },
+        emojis: {
+          create: study.emojis.map((e) => ({
+            id: e.id,
+            type: e.type,
+          })),
+        },
+      },
+    });
+  }
+  // // 2. 데이터 생성 로직 통합
+  // const studyPromises = xs(NUM_STUDIES_TO_CREATE).map(async () => {
+  //   const study = await makeStudy();
+  //   const habits = makeHabitsForStudy(study.id);
+  //   const emojis = makeEmojisForStudy(study.id);
 
-  console.log('\n✅ 생성 완료');
+  //   return prisma.study.create({
+  //     data: {
+  //       ...study,
+  //       habits: {
+  //         create: habits.map(({ records, ...h }) => ({
+  //           ...h,
+  //           records: { create: records } // records는 nested create
+  //         })),
+  //       },
+  //       emojis: {
+  //         create: emojis.map(({ studyId, ...e }) => e), // studyId는 자동 매핑되므로 제외 가능
+  //       },
+  //     },
+  //   });
+  // });
+
+  // const results = await Promise.all(studyPromises);
+
+  console.log('✅ 시딩 완료');
   console.log(`📊 Study: ${studies.length}`);
   console.log(
-    `📊 Habit 총 개수: ${studies.reduce((sum, s) => sum + s.habits.length, 0)}`,
+    `📊 Habits: ${studies.reduce((sum, s) => sum + s.habits.length, 0)}`,
+  );
+  console.log(
+    `📊 Emojis: ${studies.reduce((sum, s) => sum + s.emojis.length, 0)}`,
   );
 }
 
-main();
+// Prisma Client 설정
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL,
+});
+
+const prisma = new PrismaClient({ adapter });
+
+(async () => {
+  try {
+    await main(prisma);
+  } catch (e) {
+    console.error('❌ 시딩 에러:', e);
+    process.exit(1);
+  } finally {
+    await prisma.$disconnect();
+  }
+})();
